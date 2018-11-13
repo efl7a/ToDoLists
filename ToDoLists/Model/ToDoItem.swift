@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ToDoItem : Codable {
+class ToDoItem : Codable  {
     
     var title: String = ""
     var done: Bool = false
