@@ -7,32 +7,109 @@
 //
 
 import UIKit
+import CoreData
 
 class CategoryViewController: UITableViewController {
-
+    
+    var categoryArray = [ToDoCategory]()
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        loadCategories()
     }
 
     // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+   
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoCategoryCell", for: indexPath)
+        
+        let category = categoryArray[indexPath.row]
+        
+        cell.textLabel?.text = category.name
+        
+        cell.accessoryType = category.done ? .checkmark : .none
+        
+        return cell
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return 0
+
+        return categoryArray.count
     }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let category = categoryArray[indexPath.row]
+        
+        category.done = !category.done
+        
+        saveCategories()
+        
+        tableView.reloadData()
+        
+        
+    }
+
+    // MARK: - Add new Category
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Category", message: " ", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "New Category", style: .default) {
+            (action) in
+            
+            let newCategory = ToDoCategory(context: self.context)
+            newCategory.name = textField.text!
+            newCategory.done = false
+            
+            self.categoryArray.append(newCategory)
+            
+            self.saveCategories()
+            
+            self.tableView.reloadData()
+            
+        }
+        
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Add new category here."
+            textField = alertTextField
+        }
+        
+        alert.addAction(action)
+        
+        present(alert, animated: true, completion: nil)
+        
+    }
+    
+    //MARK: Saving and Fetching Data
+    
+    func saveCategories() {
+        
+        do {
+            try context.save()
+        } catch {
+            print("There was an error saving: \(error)")
+        }
+        
+        tableView.reloadData()
+    }
+    
+    func loadCategories(with request: NSFetchRequest<ToDoCategory> = ToDoCategory.fetchRequest()) {
+        
+        do {
+            categoryArray = try context.fetch(request)
+            
+        } catch {
+            print("retrieving categories had an error")
+        }
+        tableView.reloadData()
     }
     
 
