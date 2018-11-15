@@ -19,9 +19,10 @@ class CategoryViewController: UITableViewController {
         super.viewDidLoad()
         
         loadCategories()
+        
     }
 
-    // MARK: - Table view data source
+    // MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
    
@@ -42,18 +43,12 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        let category = categoryArray[indexPath.row]
-        
-        category.done = !category.done
-        
-        saveCategories()
-        
-        tableView.reloadData()
-        
-        
-    }
 
+       self.performSegue(withIdentifier: "goToItemList", sender: indexPath)
+
+
+    }
+    
     // MARK: - Add new Category
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -88,7 +83,7 @@ class CategoryViewController: UITableViewController {
         
     }
     
-    //MARK: Saving and Fetching Data
+    //MARK: Data Manipulation Methods - Saving and Fetching Data
     
     func saveCategories() {
         
@@ -106,11 +101,29 @@ class CategoryViewController: UITableViewController {
         do {
             categoryArray = try context.fetch(request)
             
+            print(categoryArray)
+            
         } catch {
             print("retrieving categories had an error")
         }
         tableView.reloadData()
     }
     
-
+    //MARK: TableView Delegate Methods
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        
+        if segue.identifier == "goToItemList" {
+            
+            let destinationViewController = segue.destination as? ToDoListViewController
+            
+            let row = (sender as! NSIndexPath).row
+//          if let indexPath = tableView.indexPathForSelectedRow { destinationViewController.category = ...}
+            
+            destinationViewController?.category = categoryArray[row]
+            
+        }
+        
+    }
 }
