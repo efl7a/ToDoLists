@@ -20,11 +20,8 @@ class ToDoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let chosenCategoryPredicate = NSPredicate(format: "%K == %@", "category", category!)
-        
-        loadItems(predicate: chosenCategoryPredicate)
-        
-        
+        loadItems()
+       
      }
 
     //MARK: - TableView Datasource Methods
@@ -103,12 +100,22 @@ class ToDoListViewController: UITableViewController {
     }
     
 //    func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()) {
-    func loadItems(predicate: NSPredicate) {
+    func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(), predicate: NSPredicate? = nil) {
         
-        let request : NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
-
-        request.predicate = predicate
+        let chosenCategoryPredicate = NSPredicate(format: "%K == %@", "category", category!)
         
+        if let additionalPredicate = predicate {
+            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [chosenCategoryPredicate, additionalPredicate])
+            
+            request.predicate = compoundPredicate
+            
+        } else {
+            
+            request.predicate = chosenCategoryPredicate
+            
+        }
+    
+       
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
         do {
@@ -132,25 +139,21 @@ extension ToDoListViewController: UISearchBarDelegate {
     
     func  searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
 
-        let userSearchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-        let chosenCategoryPredicate = NSPredicate(format: "%K == %@", "category", category!)
-        
-        let compoundPredicate: NSCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates:[chosenCategoryPredicate, userSearchPredicate])
-        
-        loadItems(predicate: compoundPredicate)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+   
+        loadItems(predicate: predicate)
     }
     
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0 {
-//            loadItems()
-//            
-//            DispatchQueue.main.async {
-//                searchBar.resignFirstResponder()
-//            }
-//        }
-//        
-//    }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+        
+    }
     
 }
 
