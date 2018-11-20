@@ -9,26 +9,27 @@
 import UIKit
 import RealmSwift
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     lazy var realm = try! Realm()
     
-    var categoryArray: Results<ToDoCategory>?
+    var categories: Results<ToDoCategory>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         loadCategories()
         
+        tableView.rowHeight = 80.0
     }
 
     // MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
    
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoCategoryCell", for: indexPath)
-        
-        let category = categoryArray?[indexPath.row]
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+
+        let category = categories?[indexPath.row]
         
         cell.textLabel?.text = category?.name ?? "No Categories Available"
         
@@ -37,7 +38,7 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
-        return categoryArray?.count ?? 1
+        return categories?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -46,6 +47,21 @@ class CategoryViewController: UITableViewController {
 
 
     }
+    //MARK: - Delete Data From Swipe
+    
+    override func deleteObjectFromDatabase(at indexPath: IndexPath) {
+        if let category = self.categories?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(category)
+                }
+            } catch {
+                print("Error, \(error), deleting category")
+            }
+
+        }
+    }
+    
     
     // MARK: - Add new Category
 
@@ -95,7 +111,7 @@ class CategoryViewController: UITableViewController {
     
     func loadCategories() {
         
-        categoryArray = realm.objects(ToDoCategory.self)
+        categories = realm.objects(ToDoCategory.self)
         
         tableView.reloadData()
     }
@@ -112,9 +128,10 @@ class CategoryViewController: UITableViewController {
             let row = (sender as! NSIndexPath).row
 //          if let indexPath = tableView.indexPathForSelectedRow { destinationViewController.category = ...}
             
-            destinationViewController?.category = categoryArray?[row]
+            destinationViewController?.category = categories?[row]
             
         }
         
     }
 }
+
